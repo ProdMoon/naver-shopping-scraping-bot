@@ -20,7 +20,7 @@ def prepare_browser():
     return driver
 
 def scrape(keyword, optionword):
-    print (f"->[{keyword}] 검색결과 데이터를 가져오고 있습니다...")
+    print (f"->[{keyword}{'' if optionword == '' else ', option: ' + optionword}] 검색결과 데이터를 가져오고 있습니다...")
 
     url = f'https://search.shopping.naver.com/search/all?frm=NVSHMDL&origQuery={keyword}&pagingIndex=1&pagingSize=40&productSet=model&query={keyword}&sort=rel&timestamp=&viewType=list'
 
@@ -73,7 +73,7 @@ def scrape(keyword, optionword):
         table.append([img.get_attribute("alt") if img else markets[i].text, titles[i].text, prices[i].text, deliveries[i].text, titles[i].get_attribute("href")])
     
     df = pandas.DataFrame(table, columns=["판매처", "제목", "가격", "배송비", "링크"])
-    with pandas.ExcelWriter(f"./{keyword}.xlsx") as writer:
+    with pandas.ExcelWriter(f"./{keyword}{'' if optionword == '' else ', ' + optionword}.xlsx") as writer:
         df.to_excel(writer)
 
     chrome.quit()
