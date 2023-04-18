@@ -5,8 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas
 import time
-
-keywords = ["매일 멸균우유", "매일치즈", "매일우유"]
+import sys
+import os
 
 def prepare_browser():
     chrome_options = webdriver.ChromeOptions()
@@ -19,7 +19,7 @@ def prepare_browser():
     driver = webdriver.Chrome(options= chrome_options)
     return driver
 
-def scrape(keyword):
+def scrape(keyword, optionword):
     print (f"->[{keyword}] 검색결과 데이터를 가져오고 있습니다...")
 
     url = f'https://search.shopping.naver.com/search/all?frm=NVSHMDL&origQuery={keyword}&pagingIndex=1&pagingSize=40&productSet=model&query={keyword}&sort=rel&timestamp=&viewType=list'
@@ -48,7 +48,7 @@ def scrape(keyword):
         detail_filter = chrome.find_elements(By.CLASS_NAME, "filter_condition_group__h8Gss")
         options = detail_filter[1].find_elements(By.CLASS_NAME, "filter_text__J8EIh")
         for option in options:
-            if option.text == '24개':
+            if option.text == optionword:
                 option.click()
         time.sleep(1)
     except:
@@ -79,8 +79,37 @@ def scrape(keyword):
     chrome.quit()
 
 def main():
-    for keyword in keywords:
-        scrape(keyword)
+    if getattr(sys, 'frozen', False):
+        path = sys._MEIPASS
+    else:
+        path = os.path.abspath(os.path.dirname(__file__))
+
+    try:
+        with open(os.path.join(path, './data.txt'), 'r', encoding="UTF-8") as file:
+    # try:
+    #     with open('./data.txt', 'r', encoding='UTF-8') as file:    
+            while True:
+                line = list(map(lambda x: x.strip(), file.readline().split(',')))
+                if line == ['']:
+                    break
+                if len(line) > 2:
+                    print('옵션이 너무 많습니다. 하나의 키워드에는 하나의 옵션만 적어주세요.')
+                    print('Enter 키를 누르면 종료됩니다...')
+                    input()
+                    return
+                keyword = line[0]
+                optionword = ''
+                if len(line) > 1:
+                    optionword = line[1]
+                
+                scrape(keyword, optionword)
+    except:
+        print('파일이 준비되어 있지 않은 것 같아요!')
+        print('data.txt 파일이 실행파일과 같은 경로에 있는지 확인해주세요.')
+        print('Enter 키를 누르면 종료됩니다...')
+        input()
+
+    return
 
 if __name__ == '__main__':
     main()
